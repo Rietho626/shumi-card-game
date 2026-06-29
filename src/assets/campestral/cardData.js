@@ -2,7 +2,7 @@ export const campestral = {
   maum: {
   id: "maum",
   type: "shumi",
-  src: "public/campestral/maum.png",
+  src: "campestral/maum.png",
   name: "Maum",
   speed: "s",
   habitat: "campestral",
@@ -72,7 +72,7 @@ export const campestral = {
 faele: {
   id: "faele",
   type: "shumi",
-  src: "public/campestral/faele.png",
+  src: "campestral/faele.png",
   name: "Faele",
   speed: "s",
   habitat: "campestral",
@@ -137,7 +137,7 @@ faele: {
 muspem: {
   id: "muspem",
   type: "shumi",
-  src: "public/campestral/muspem.png",
+  src: "campestral/muspem.png",
   name: "Muspem",
   speed: "s",
   habitat: "campestral",
@@ -196,7 +196,7 @@ muspem: {
 supel: {
   id: "supel",
   type: "shumi",
-  src: "public/campestral/supel.png",
+  src: "campestral/supel.png",
   name: "Supel",
   speed: "s",
   habitat: "campestral",
@@ -260,7 +260,7 @@ supel: {
 horucan: {
   id: "horucan",
   type: "shumi",
-  src: "public/campestral/horucan.png",
+  src: "campestral/horucan.png",
   name: "Horucan",
   speed: "s",
   habitat: "campestral",
@@ -332,7 +332,7 @@ horucan: {
 gramaum: {
   id: "gramaum",
   type: "shumi",
-  src: "public/campestral/gramaum.png",
+  src: "campestral/gramaum.png",
   name: "Gramaum",
   speed: "s",
   habitat: "campestral",
@@ -404,7 +404,7 @@ gramaum: {
 musclyp: {
   id: "musclyp",
   type: "shumi",
-  src: "public/campestral/musclyp.png",
+  src: "campestral/musclyp.png",
   name: "Musclyp",
   speed: "s",
   habitat: "campestral",
@@ -477,7 +477,7 @@ musclyp: {
 farloss: {
   id: "farloss",
   type: "shumi",
-  src: "public/campestral/farloss.png",
+  src: "campestral/farloss.png",
   name: "Farloss",
   speed: "s",
   habitat: "campestral",
@@ -546,7 +546,7 @@ farloss: {
 caquil: {
   id: "caquil",
   type: "shumi",
-  src: "public/campestral/caquil.png",
+  src: "campestral/caquil.png",
   name: "Caquil",
   speed: "s",
   habitat: "campestral",
@@ -599,7 +599,7 @@ caquil: {
 schnuut: {
   id: "schnuut",
   type: "shumi",
-  src: "public/campestral/schnuut.png",
+  src: "campestral/schnuut.png",
   name: "Schnuut",
   speed: "s",
   habitat: "campestral",
@@ -659,7 +659,7 @@ schnuut: {
 inazovis: {
   id: "inazovis",
   type: "shumi",
-  src: "public/campestral/inazovis.png",
+  src: "campestral/inazovis.png",
   name: "Inazovis",
   speed: "s",
   habitat: "campestral",
@@ -714,7 +714,7 @@ inazovis: {
 equuna: {
   id: "equuna",
   type: "shumi",
-  src: "public/campestral/equuna.png",
+  src: "campestral/equuna.png",
   name: "Equuna",
   speed: "s",
   habitat: "campestral",
@@ -784,7 +784,7 @@ equuna: {
 kalfil: {
   id: "kalfil",
   type: "shumi",
-  src: "public/campestral/kalfil.png",
+  src: "campestral/kalfil.png",
   name: "Kalfil",
   speed: "s",
   habitat: "campestral",
@@ -850,7 +850,7 @@ kalfil: {
 sendris: {
   id: "sendris",
   type: "shumi",
-  src: "public/campestral/sendris.png",
+  src: "campestral/sendris.png",
   name: "Sendris",
   speed: "s",
   habitat: "campestral",
@@ -918,7 +918,7 @@ sendris: {
 leppun: {
   id: "leppun",
   type: "shumi",
-  src: "public/campestral/leppun.png",
+  src: "campestral/leppun.png",
   name: "Leppun",
   speed: "s",
   habitat: "campestral",
@@ -960,7 +960,7 @@ leppun: {
 kalflux: {
   id: "kalflux",
   type: "shumi",
-  src: "public/campestral/kalflux.png",
+  src: "campestral/kalflux.png",
   name: "Kalflux",
   speed: "s",
   habitat: "campestral",
@@ -1019,7 +1019,7 @@ kalflux: {
 inagnu: {
   id: "inagnu",
   type: "shumi",
-  src: "public/campestral/inagnu.png",
+  src: "campestral/inagnu.png",
   name: "Inagnu",
   speed: "s",
   habitat: "campestral",
@@ -1096,7 +1096,7 @@ inagnu: {
 campest: {
   id: "campest",
   type: "myth",
-  src: "public/campestral/campest.png",
+  src: "campestral/campest.png",
   name: "Campest",
   fullName: "Campestral Myth - Campest",
   subtype: "spirit_of_the_vast",
@@ -1155,7 +1155,7 @@ campest: {
 
   hasten:{
     id: "hasten",
-    src: "public/campestral/hasten.png",
+    src: "campestral/hasten.png",
     type: "spell",
     name: "Hasten",
     speed: "s",
@@ -1172,7 +1172,7 @@ campest: {
   },
   "razorgrass-shield":{
     id: "razorgrass-shield",
-    src: "public/campestral/razorgrass-shield.png",
+    src: "campestral/razorgrass-shield.png",
     type: "interception",
     name: "Razorgrass Shield",
     speed: "i",
@@ -1218,7 +1218,7 @@ campest: {
   },
   prosper:{
     id: "prosper",
-    src: "public/campestral/prosper.png",
+    src: "campestral/prosper.png",
     name: "Prosper",
     type: "quickcast",
     yaoCost: 1,
@@ -1245,7 +1245,7 @@ campest: {
   },
    "cycle-summon":{
     id: "cycle-summon",
-    src: "public/campestral/cycle-summon.png",
+    src: "campestral/cycle-summon.png",
     name: "Cycle Summon",
     type: "interception",
     yaoCost: 2,
@@ -1275,7 +1275,7 @@ campest: {
   "rune-of-the-razor-grass":{
     id: "rune-of-the-razor-grass",
     type: "power-rune",
-    src: "public/campestral/rune-of-the-razor-grass.png",
+    src: "campestral/rune-of-the-razor-grass.png",
     name: "Rune of the Razor Grass",
     habitat: "campestral",
     upperAbility:[
@@ -1321,7 +1321,7 @@ campest: {
   },
   "rune-of-the-fertile-field":{
     id: "rune-of-the-fertile-field",
-    src: "public/campestral/rune-of-the-fertile-field.png",
+    src: "campestral/rune-of-the-fertile-field.png",
     type: "power-rune",
     name: "Rune of the Fertile Field",
     habitat: "campestral",
@@ -1434,7 +1434,7 @@ campest: {
     type: "crystal",
     yaoCost: null,
     speed: "s",
-    src: "public/campestral/campestral-yao-crystal.png",
+    src: "campestral/campestral-yao-crystal.png",
     id: "campestral-yao-crystal",
     name: "Campestral Yao Crystal",
     crystalDefaultEffect: true,
