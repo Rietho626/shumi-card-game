@@ -61,7 +61,7 @@ function BattlefieldCards({ player, lane, setPreviewState, allRefs, idx, card, e
         >
             <div style={innerShadowStyles}></div>
             <div className='health' style={healthStyles}>{card.currentHp}</div>
-            <img src={`./src/assets/campestral/pics/${card.id}-pic.png`}  style={imgStyles}/>
+            <img src={`${import.meta.env.BASE_URL}campestral/pics/${card.id}-pic.png`}  style={imgStyles}/>
 
         </div>
     )
