@@ -48,7 +48,7 @@ function Deck({ gameState, player, deckType, setGameState, playCardLogic, allRef
             engine.current.drawCard(player, deckType);
             setVersion(v=>v+1);
          }}>
-            <img src={state[player][deckType].length > 0 ? "./src/assets/card-bg.png" : ""} style={deckStyles}/>
+            <img src={state[player][deckType].length > 0 ? `${import.meta.env.BASE_URL}card-bg.png` : ""} style={deckStyles}/>
             <div id={`${player}-${deckType}-status`} style={statusStyles}>
                 {deckType === "actionDeck" ? "Action Deck" : "Yao Deck"}<br/>
                 Cards left: {state[player][deckType].length}

@@ -27,7 +27,7 @@ function YaoReserve({ player, playCardLogic, allRefs, engine, setVersion, checkT
     return(
         <div id={`${player}-yao-reserve`} style={styles} onClick={addYao} className={`${checkTargetable() ? "non-targetable" : "targetable"}`} ref={allRefs[player]['yaoReserve']}>
             <img
-                src={`./src/assets/${state[player].yaoReserve}yao.png`}
+                src={`${import.meta.env.BASE_URL}${state[player].yaoReserve}yao.png`}
                 style={imgStyle}
             />
         </div>

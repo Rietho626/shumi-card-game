@@ -3,6 +3,7 @@ import { useState,  useRef, useEffect, use } from 'react'
 
 function Menu({ setMenuState, setGameRunningState, bgRef, headlineRef }){
 
+    const bgUrl = `url(${import.meta.env.BASE_URL}bg.png)`;
 
     const menuStyles ={
         position: "fixed",
@@ -45,7 +46,7 @@ function Menu({ setMenuState, setGameRunningState, bgRef, headlineRef }){
     }
 
     const bg1Styles = {
-        backgroundImage: "url(./src/assets/bg.png)",
+        backgroundImage: bgUrl,
         backgroundRepeat: "no-repeat",
         backgroundSize: "cover",
         position: "fixed",
@@ -62,7 +63,7 @@ function Menu({ setMenuState, setGameRunningState, bgRef, headlineRef }){
 
     
     const bg2Styles = {
-        backgroundImage: "url(./src/assets/bg.png)",
+        backgroundImage: bgUrl,
         backgroundRepeat: "no-repeat",
         backgroundSize: "cover",
         position: "fixed",
