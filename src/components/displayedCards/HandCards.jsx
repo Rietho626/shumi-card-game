@@ -67,7 +67,7 @@ function HandCard({ player, setPreviewState, dragLogic, card, idx, playCardLogic
             }}
         >
             <img
-                src={campestral[card.id].src}
+                src={`${import.meta.env.BASE_URL}${campestral[card.id].src}`}
                 style={imgStyle}
                 draggable='false'
                 
