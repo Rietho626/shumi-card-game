@@ -1,0 +1,88 @@
+:root{
+   font-family: "Gelasio", regular;
+   font-size: 35px; 
+   font-weight: 500;
+}
+
+body{
+    height: 100%;
+    margin: 0px;
+    overflow: hidden;
+}
+
+#root{
+    overflow: hidden;
+}
+#game{ 
+  height: 100vh;
+  display: grid;
+  overflow: hidden;
+  grid-template-rows:
+    9fr
+    1fr
+    9fr
+}
+
+.player-expanded{
+    transform: translateY(0px) !important;
+}
+
+.opponent-expanded{
+    transform: translateY(0px) rotate(180deg) !important;
+}
+
+.non-targetable{
+    filter: brightness(0.5);
+    pointer-events: none;
+}
+
+.targetable{
+    pointer-events: auto;
+}
+
+.legal-target:hover{
+    cursor: pointer !important;
+    box-shadow: 0px 0px 5px 2px gold !important;
+}
+
+.currently-playing-card{
+    box-shadow: 0px 0px 5px 2px cyan !important;
+    filter: brightness(1);
+}
+
+.hidden{
+  visibility: hidden;
+}
+
+.game-info-button:hover{
+ color: black !important;
+ background-color: white !important;
+}
+
+.mulligan{
+    box-shadow: 0px 0px 5px 2px crimson;
+}
+
+.black{
+    color: black !important;
+}
+
+.d-head, .d-body{
+    transition: color 0.2s ease;
+}
+
+.white-glow{
+    /*white text shadow here if needed*/
+}
+
+.red-glow{
+    /*red text shadow here if needed*/
+}
+
+#disclaimer{
+    transition: 0.2s ease-out;
+}
+
+#menu-headline:hover{
+    cursor: pointer;
+}
