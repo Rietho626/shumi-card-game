@@ -3,7 +3,6 @@ import campestral from "../../assets/campestral/cardData.js";
 function HandCard({
   player,
   setPreviewState,
-  dragLogic,
   card,
   idx,
   allRefs,
@@ -50,17 +49,6 @@ function HandCard({
     }
   }
 
-  const dragInlineStyle =
-    idx === "dragged"
-      ? {
-          position: "fixed",
-          left: dragLogic?.dragState?.x ?? 0,
-          top: dragLogic?.dragState?.y ?? 0,
-          pointerEvents: "none",
-          zIndex: 100
-        }
-      : undefined;
-
   const imgSrc = player === "opponent" ? "card-bg.png" : cardDef.src;
 
   return (
@@ -74,7 +62,6 @@ function HandCard({
       ]
         .filter(Boolean)
         .join(" ")}
-      style={dragInlineStyle}
       ref={(el) => {
         if (allRefs?.[player]?.handCards?.current) {
           allRefs[player].handCards.current[`${player}-hand-card-${idx}`] = el;
@@ -87,22 +74,6 @@ function HandCard({
       }}
       onMouseLeave={() => setPreviewState({})}
       onClick={handleCardClick}
-      onMouseDown={(e) => {
-        if (
-          player === "player" &&
-          !isMulliganActive &&
-          isActionable &&
-          dragLogic?.handleStartDrag &&
-          e.button === 0
-        ) {
-          setPreviewState({});
-          dragLogic.handleStartDrag(
-            card,
-            allRefs[player]?.handCards?.current?.[`${player}-hand-card-${idx}`],
-            e
-          );
-        }
-      }}
     >
       <img src={imgSrc} alt={player === "player" ? cardDef.name : "Card Back"} draggable="false" />
       {isSelectedForMulligan && <div className="mulligan-tag">REDRAW</div>}

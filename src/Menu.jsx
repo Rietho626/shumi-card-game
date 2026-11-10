@@ -1,5 +1,7 @@
+import { useState } from "react";
 import campestral from "./assets/campestral/cardData.js";
 import { DECK_RULES } from "./setup.js";
+import HowToPlayModal from "./components/HowToPlayModal.jsx";
 
 function Menu({
   decksConfig,
@@ -9,6 +11,7 @@ function Menu({
   onOpenDeckBuilder,
   headlineRef
 }) {
+  const [showGuide, setShowGuide] = useState(false);
   const playerValid = decksConfig.player.actionDeckIds.length === DECK_RULES.actionDeckSize;
   const aiValid = decksConfig.opponent.actionDeckIds.length === DECK_RULES.actionDeckSize;
   const canStart = playerValid && aiValid;
@@ -73,8 +76,13 @@ function Menu({
           <button className="shumi-btn secondary builder-btn" onClick={onOpenDeckBuilder}>
             ✦ Deck &amp; Rune Forge (Player &amp; AI)
           </button>
+          <button className="shumi-btn secondary guide-btn" onClick={() => setShowGuide(true)}>
+            📖 How to Play Guide
+          </button>
         </div>
       </div>
+
+      {showGuide && <HowToPlayModal onClose={() => setShowGuide(false)} />}
     </div>
   );
 }

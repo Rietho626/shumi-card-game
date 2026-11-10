@@ -10,7 +10,6 @@ function GameBoard({
   allRefs,
   player,
   setPreviewState,
-  dragLogic,
   playCardLogic,
   engine,
   setVersion,
@@ -169,7 +168,6 @@ function GameBoard({
         allRefs={allRefs}
         player={player}
         setPreviewState={setPreviewState}
-        dragLogic={dragLogic}
         playCardLogic={playCardLogic}
         engine={engine}
         setVersion={setVersion}

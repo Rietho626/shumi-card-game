@@ -4,7 +4,6 @@ import HandCard from "./displayedCards/HandCards.jsx";
 function Hand({
   player,
   setPreviewState,
-  dragLogic,
   playCardLogic,
   allRefs,
   engine,
@@ -33,7 +32,7 @@ function Hand({
     >
       <div className="hand-drawer-tab">
         {player === "player"
-          ? `Your Hand (${handCards.length}) — Hover or Click Cards to Play`
+          ? `Your Hand (${handCards.length}) — Click a Card to Play`
           : `Opponent Hand (${handCards.length})`}
       </div>
       <div className="hand-cards-row">
@@ -42,7 +41,6 @@ function Hand({
             allRefs={allRefs}
             player={player}
             setPreviewState={setPreviewState}
-            dragLogic={dragLogic}
             playCardLogic={playCardLogic}
             card={card}
             idx={idx}

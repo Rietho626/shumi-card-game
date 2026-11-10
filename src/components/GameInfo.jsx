@@ -6,7 +6,8 @@ function GameInfo({
   mulligan,
   onReturnToMenu,
   onToggleCombatLog,
-  showCombatLog
+  showCombatLog,
+  onOpenGuide
 }) {
   const state = engine.current.state;
   const prompt = state.gameInfo.prompt;
@@ -74,6 +75,9 @@ function GameInfo({
           title="Toggle Battle Log"
         >
           📜 Log ({state.gameInfo.combatLog?.length || 0})
+        </button>
+        <button className="gi-nav-btn" onClick={onOpenGuide} title="Open How to Play Guide">
+          📖 Guide
         </button>
 
         {!hasPromptOrAction && (

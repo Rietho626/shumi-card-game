@@ -1,14 +1,13 @@
 import { useState, useRef, useEffect } from "react";
 
-import HandCard from "./components/displayedCards/HandCards.jsx";
 import GameBoard from "./components/GameBoard.jsx";
 import GameInfo from "./components/GameInfo.jsx";
-import DragTarget from "./components/DragTarget.jsx";
 import getSetup from "./setup.js";
 import PreviewModal from "./components/PreviewModal.jsx";
 import campestral from "./assets/campestral/cardData.js";
 import TheStack from "./components/TheStack.jsx";
 import GameEngine from "./gameLogic.js";
+import HowToPlayModal from "./components/HowToPlayModal.jsx";
 
 function Game({ decksConfig, initialSavedState, onReturnToMenu, onStartNewMatch }) {
   const [, setVersion] = useState(0);
@@ -27,7 +26,6 @@ function Game({ decksConfig, initialSavedState, onReturnToMenu, onStartNewMatch 
   const state = engine.current.state;
 
   const [previewState, setPreviewState] = useState({});
-  const [dragState, setDragState] = useState({});
   const [playCardState, setPlayCardState] = useState({});
   const [gameInfoState, setGameInfoState] = useState({});
   const [mulliganState, setMulliganState] = useState({});
@@ -35,8 +33,8 @@ function Game({ decksConfig, initialSavedState, onReturnToMenu, onStartNewMatch 
   const [selectedShumi, setSelectedShumi] = useState(null); // { cardNr, owner }
   const [inspectedZone, setInspectedZone] = useState(null); // { player, zoneType, label, cards }
   const [showCombatLog, setShowCombatLog] = useState(false);
+  const [showGuide, setShowGuide] = useState(false);
 
-  const dragZoneRef = useRef(null);
   const cancelPlayRef = useRef(null);
 
   const allRefs = {
@@ -224,57 +222,6 @@ function Game({ decksConfig, initialSavedState, onReturnToMenu, onStartNewMatch 
   }
 
   // ==========================================
-  // DRAG TO PLAY SUPPORT
-  // ==========================================
-
-  function isInsideRect(posX, posY, rect) {
-    if (!rect) return false;
-    const { x, y, width, height } = rect;
-    return posY > y && posX > x && posX < x + width && posY < y + height;
-  }
-
-  function handleStartDrag(card, cardRef, e) {
-    const startX = e.clientX;
-    const startY = e.clientY;
-    let draggingStarted = false;
-
-    function handleMove(moveEv) {
-      const dx = Math.abs(moveEv.clientX - startX);
-      const dy = Math.abs(moveEv.clientY - startY);
-      if (!draggingStarted && (dx > 10 || dy > 10)) {
-        draggingStarted = true;
-        if (cardRef) cardRef.style.visibility = "hidden";
-      }
-      if (draggingStarted) {
-        setDragState({
-          x: moveEv.clientX - 70,
-          y: moveEv.clientY - 100,
-          card,
-          active: true,
-          cardElement: cardRef
-        });
-      }
-    }
-
-    function handleUp(upEv) {
-      window.removeEventListener("mousemove", handleMove);
-      window.removeEventListener("mouseup", handleUp);
-      if (cardRef) cardRef.style.visibility = "visible";
-
-      if (draggingStarted) {
-        const dragZoneRect = dragZoneRef.current?.getBoundingClientRect();
-        setDragState({});
-        if (isInsideRect(upEv.clientX, upEv.clientY, dragZoneRect)) {
-          handlePlayHandCard(card);
-        }
-      }
-    }
-
-    window.addEventListener("mousemove", handleMove);
-    window.addEventListener("mouseup", handleUp);
-  }
-
-  // ==========================================
   // BATTLEFIELD SHUMI TACTICAL MENU
   // ==========================================
 
@@ -291,7 +238,6 @@ function Game({ decksConfig, initialSavedState, onReturnToMenu, onStartNewMatch 
       <GameBoard
         allRefs={allRefs}
         setPreviewState={setPreviewState}
-        dragLogic={{ dragState, setDragState }}
         playCardLogic={{ cancelPlayRef, playCardState }}
         player="opponent"
         engine={engine}
@@ -313,12 +259,12 @@ function Game({ decksConfig, initialSavedState, onReturnToMenu, onStartNewMatch 
         onReturnToMenu={onReturnToMenu}
         onToggleCombatLog={() => setShowCombatLog((v) => !v)}
         showCombatLog={showCombatLog}
+        onOpenGuide={() => setShowGuide(true)}
       />
 
       <GameBoard
         allRefs={allRefs}
         setPreviewState={setPreviewState}
-        dragLogic={{ dragState, setDragState, handleStartDrag }}
         playCardLogic={{ cancelPlayRef, playCardState }}
         player="player"
         engine={engine}
@@ -331,23 +277,7 @@ function Game({ decksConfig, initialSavedState, onReturnToMenu, onStartNewMatch 
 
       <PreviewModal previewState={previewState} />
 
-      {dragState.card && (
-        <>
-          <HandCard
-            allRefs={allRefs}
-            player="player"
-            setPreviewState={setPreviewState}
-            dragLogic={{ dragState, setDragState, handleStartDrag }}
-            playCardLogic={{ cancelPlayRef, playCardState }}
-            card={dragState.card}
-            idx="dragged"
-            engine={engine}
-            setVersion={setVersion}
-            checkTargetable={() => false}
-          />
-          <DragTarget dragZoneRef={dragZoneRef} engine={engine} setVersion={setVersion} />
-        </>
-      )}
+      {showGuide && <HowToPlayModal onClose={() => setShowGuide(false)} />}
 
       {Boolean(state.gameInfo.theStack.length) && (
         <TheStack setPreviewState={setPreviewState} engine={engine} setVersion={setVersion} />
