@@ -1,170 +1,213 @@
-import { useState, useRef, useEffect } from 'react';
+function GameInfo({
+  gameInfoState,
+  engine,
+  setVersion,
+  setGameInfoState,
+  mulligan,
+  onReturnToMenu,
+  onToggleCombatLog,
+  showCombatLog
+}) {
+  const state = engine.current.state;
+  const prompt = state.gameInfo.prompt;
 
-function GameInfo({ cancelPlayRef, playCardState, gameInfoState, allRefs, engine, setVersion, setGameInfoState, mulligan }){
+  const phases = {
+    preGame: "Pre-Game",
+    yaoPhase: "Yao Phase",
+    drawPhase: "Draw Phase",
+    actionPhase: "Action Phase",
+    endPhase: "End Phase",
+    gameOver: "Game Over"
+  };
 
-    const state = engine.current.state;
+  function drawFrom(deck) {
+    engine.current.drawCard("player", deck);
+    setGameInfoState({});
+    setVersion((v) => v + 1);
+  }
 
-    const gameInfoStyles = {
-        width: "70%",
-        color: "white",
-        backgroundColor: "black",
-        display: "flex",
-        flexDirection: "row",
-        width: "100%",
-        justifyContent: "space-evenly",
-        alignItems: "center"
-    };
+  function drawPhaseDrawFrom(deck) {
+    setGameInfoState({});
+    engine.current.drawPhaseDraw(deck);
+    setVersion((v) => v + 1);
+  }
 
-    const wrapperStyles = {
-        display: "flex",
-        flexDirection: "row",
-        width: "100%",
-        justifyContent: "space-evenly",
+  function drawHandFrom(deck) {
+    if (gameInfoState.drawn < gameInfoState.max) {
+      engine.current.drawCard("player", deck);
+      setGameInfoState((prev) => ({
+        ...prev,
+        drawn: prev.drawn + 1
+      }));
+      setVersion((v) => v + 1);
     }
+    if (gameInfoState.drawn === gameInfoState.max - 1) {
+      setGameInfoState({});
+      engine.current.startMulligan();
+    }
+  }
 
-    const infoDivStyles = {
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-        fontSize: "22px"
-    }
+  function confirmMulligan() {
+    setGameInfoState({});
+    engine.current.enactMulligan(mulligan.mulliganState.cards || []);
+    mulligan.setMulliganState({});
+  }
 
-    const buttonStyles = {
-        height: "50%",
-        width: "auto",
-        backgroundColor: "black",
-        border: "1px solid white",
-        padding: "10px",
-        color: "white",
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-        cursor: "pointer",
-        fontSize: "22px",
-        borderRadius: "5px",
-        boxShadow: "0px 0px 3px 1px white"
-    }
+  function passPrio() {
+    engine.current.handlePassPrio("player");
+    setVersion((v) => v + 1);
+  }
 
-    const phases= {
-        yaoPhase: "Yao Phase",
-        drawPhase: "Draw Phase",
-        actionPhase: "Action Phase",
-        endPhase: "End Phase"
-    }
+  const isPlayerPriority = state.gameInfo.priority.player === "player";
+  const hasPromptOrAction = Boolean(gameInfoState.msg || prompt);
 
-    const drawChoiceContainerStyles = {
-        display: "flex",
-        gap: "10px"
-    }
+  return (
+    <div id="game-info" className="game-info-bar">
+      {/* Left: Menu + Log Buttons & Turn / Phase Pills */}
+      <div className="gi-left-cluster">
+        <button className="gi-nav-btn" onClick={onReturnToMenu} title="Return to Main Menu">
+          ☰ Menu
+        </button>
+        <button
+          className={`gi-nav-btn ${showCombatLog ? "active" : ""}`}
+          onClick={onToggleCombatLog}
+          title="Toggle Battle Log"
+        >
+          📜 Log ({state.gameInfo.combatLog?.length || 0})
+        </button>
 
-    function drawFrom(deck){
-        engine.current.drawCard('player', deck);
-        setGameInfoState({});
-    }
-    function drawPhaseDrawFrom(deck){
-        engine.current.drawPhaseDraw(deck);
-        setGameInfoState({});
-    }
-    function drawHandFrom(deck){
-        engine.current.drawCard('player', deck);
-        setGameInfoState((prev)=>({
-            ...prev,
-            drawn: prev.drawn + 1
-        }));
-        if(gameInfoState.drawn + 1 === gameInfoState.max){
-            setGameInfoState({})
-            engine.current.startMulligan();
-        }
-    }
+        {!hasPromptOrAction && (
+          <div className="gi-status-pills">
+            <span className="gi-pill cycle-pill">Cycle {state.gameInfo.turn}</span>
+            <span className="gi-pill phase-pill">{phases[state.gameInfo.phase] || state.gameInfo.phase}</span>
+            <span
+              className={`gi-pill turn-pill ${
+                state.gameInfo.activePlayer === "player" ? "your-turn" : "opp-turn"
+              }`}
+            >
+              {state.gameInfo.activePlayer === "player" ? "Your Turn" : "AI's Turn"}
+            </span>
+            <span
+              className={`gi-pill prio-pill ${isPlayerPriority ? "your-prio" : "opp-prio"}`}
+            >
+              Priority: {isPlayerPriority ? "YOU" : state.gameInfo.priority.player === "opponent" ? "AI" : "—"}
+            </span>
+          </div>
+        )}
+      </div>
 
-    function confirmMulligan(){
-        engine.current.enactMulligan(mulligan.mulliganState.cards);
-        mulligan.setMulliganState({});
-        setGameInfoState({});
-    }
+      {/* Center: Prompt or Pre-Game / Draw Phase Decisions */}
+      <div className="gi-center-cluster">
+        {prompt && (
+          <div className="gi-prompt-banner">
+            <span className="gi-prompt-title">{prompt.title}:</span>
+            <span className="gi-prompt-msg">{prompt.message}</span>
+            <div className="gi-choice-buttons">
+              {prompt.type === "target_selection" ? (
+                <>
+                  {(prompt.legalTargets || []).map((t, i) => (
+                    <button
+                      key={t.cardNr || t.player || i}
+                      className="gi-action-btn target-btn"
+                      onClick={() => engine.current.resolvePrompt(t)}
+                    >
+                      ◎ {t.label}
+                    </button>
+                  ))}
+                  {prompt.optional && (
+                    <button
+                      className="gi-action-btn cancel-btn"
+                      onClick={() => engine.current.resolvePrompt(null)}
+                    >
+                      Cancel
+                    </button>
+                  )}
+                </>
+              ) : (
+                (prompt.options || []).map((opt, i) => (
+                  <button
+                    key={i}
+                    className={`gi-action-btn ${opt.value === null ? "cancel-btn" : ""}`}
+                    onClick={() => engine.current.resolvePrompt(opt.value)}
+                  >
+                    {opt.label}
+                  </button>
+                ))
+              )}
+            </div>
+          </div>
+        )}
 
-    return(
-        <div id="game-info" style={gameInfoStyles}>
-            {
-                playCardState.card && 
-                <div id='cancel-play-box'>
-                    <div id='cancel-play-button' style={buttonStyles} ref={cancelPlayRef} className='hidden game-info-button'>
-                        Cancel Play
-                    </div>
-                </div>
-            }
-            {!gameInfoState.action && <div id='game-info-wrapper' style={wrapperStyles}>
-                <div id="turn-display" style={infoDivStyles}>
-                    Turn: {state.gameInfo.turn}
-                </div>
-                <div id="active-info" style={infoDivStyles}>
-                    {state.gameInfo.activePlayer ?? "Game not in Progress"}
-                </div>
-                <div id="phase-info" style={infoDivStyles}>
-                    {state.gameInfo.phase == "preGame" ? "" : phases[state.gameInfo.phase]}
-                </div>
-                <div style={buttonStyles} className='game-info-button'>
-                    Don't respond this phase
-                </div>
-                <div style={buttonStyles} className='game-info-button' onClick={()=>{engine.current.handlePassPrio('player')}}>
-                    Pass priority
-                </div>
-            </div>}
-            {
-                gameInfoState.msg &&
-                <div style={infoDivStyles}>
-                    {gameInfoState.msg + 
-                     (gameInfoState.action === "drawHand" ? ` (${gameInfoState.drawn}/${gameInfoState.max})` : "") + 
-                     (gameInfoState.action === "mulligan" ? ` (${mulligan.mulliganState.cards?.length}/3)` : "")}
-                </div>
-            }
-            {
-                gameInfoState.action === "draw" &&
-                <div style={drawChoiceContainerStyles}>
-                    <div style={buttonStyles} className='game-info-button' onClick={()=>{drawFrom('actionDeck')}}>
-                    Draw from Action Deck
-                   </div>
-                   <div style={buttonStyles} className='game-info-button' onClick={()=>{drawFrom('yaoDeck')}}>
-                    Draw from Yao Deck
-                  </div>
-                </div>
-    
-            }
-            {
-                gameInfoState.action === "drawPhaseDraw" &&
-                <div style={drawChoiceContainerStyles}>
-                    <div style={buttonStyles} className='game-info-button' onClick={()=>{drawPhaseDrawFrom('actionDeck')}}>
-                    Draw from Action Deck
-                   </div>
-                   <div style={buttonStyles} className='game-info-button' onClick={()=>{drawPhaseDrawFrom('yaoDeck')}}>
-                    Draw from Yao Deck
-                  </div>
-                </div>
-    
-            }
-            {
-                gameInfoState.action === "drawHand" &&
-                <div style={drawChoiceContainerStyles}>
-                    <div style={buttonStyles} className='game-info-button' onClick={()=>{drawHandFrom('actionDeck')}}>
-                    Draw from Action Deck
-                   </div>
-                   <div style={buttonStyles} className='game-info-button' onClick={()=>{drawHandFrom('yaoDeck')}}>
-                    Draw from Yao Deck
-                  </div>
-                </div>
-    
-            }
-             {
-                gameInfoState.action === "mulligan" &&
-                <div style={drawChoiceContainerStyles}>
-                   <div style={buttonStyles} className='game-info-button' onClick={()=>{confirmMulligan()}}>
-                    Confirm Mulligan
-                  </div>
-                </div>
-    
-            }
-        </div>
-    )
+        {!prompt && gameInfoState.msg && (
+          <div className="gi-prompt-banner">
+            <span className="gi-prompt-msg">
+              {gameInfoState.msg}
+              {gameInfoState.action === "drawHand"
+                ? ` (${gameInfoState.drawn} / ${gameInfoState.max})`
+                : ""}
+            </span>
+
+            {gameInfoState.action === "draw" && (
+              <div className="gi-choice-buttons">
+                <button className="gi-action-btn" onClick={() => drawFrom("actionDeck")}>
+                  Draw Action Deck ({state.player.actionDeck.length})
+                </button>
+                <button className="gi-action-btn" onClick={() => drawFrom("yaoDeck")}>
+                  Draw Yao Deck ({state.player.yaoDeck.length})
+                </button>
+              </div>
+            )}
+
+            {gameInfoState.action === "drawPhaseDraw" && (
+              <div className="gi-choice-buttons">
+                <button className="gi-action-btn" onClick={() => drawPhaseDrawFrom("actionDeck")}>
+                  Draw Action Deck ({state.player.actionDeck.length})
+                </button>
+                <button className="gi-action-btn" onClick={() => drawPhaseDrawFrom("yaoDeck")}>
+                  Draw Yao Deck ({state.player.yaoDeck.length})
+                </button>
+              </div>
+            )}
+
+            {gameInfoState.action === "drawHand" && (
+              <div className="gi-choice-buttons">
+                <button className="gi-action-btn" onClick={() => drawHandFrom("actionDeck")}>
+                  Draw Action Deck ({state.player.actionDeck.length})
+                </button>
+                <button className="gi-action-btn" onClick={() => drawHandFrom("yaoDeck")}>
+                  Draw Yao Deck ({state.player.yaoDeck.length})
+                </button>
+              </div>
+            )}
+
+            {gameInfoState.action === "mulligan" && (
+              <div className="gi-choice-buttons">
+                <span className="gi-mulligan-count">
+                  Selected: {mulligan?.mulliganState?.cards?.length || 0} / 3
+                </span>
+                <button className="gi-action-btn primary" onClick={confirmMulligan}>
+                  ✓ Confirm Mulligan
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Right: Pass Priority / Phase Controls */}
+      <div className="gi-right-cluster">
+        {!prompt && isPlayerPriority && (
+          <button className="gi-pass-btn" onClick={passPrio}>
+            {state.gameInfo.theStack.length > 0
+              ? "Resolve / Pass Priority →"
+              : state.gameInfo.phase === "actionPhase" && state.gameInfo.activePlayer === "player"
+              ? "End Action Phase →"
+              : "Pass Priority →"}
+          </button>
+        )}
+      </div>
+    </div>
+  );
 }
 
 export default GameInfo;

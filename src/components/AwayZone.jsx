@@ -1,85 +1,45 @@
-import { useState, useRef, useEffect } from 'react';
-import campestral from '../assets/campestral/cardData';
+import campestral from "../assets/campestral/cardData.js";
 
-function AwayZone({ player, zoneType, setPreviewState, playCardLogic, allRefs, engine, setVersion, checkTargetable }){
+function AwayZone({
+  player,
+  zoneType,
+  setPreviewState,
+  allRefs,
+  engine,
+  onInspectZone
+}) {
+  const state = engine.current.state;
+  const cards = state[player][zoneType] || [];
+  const topCard = cards[0] ? campestral[cards[0].id] : null;
+  const label = zoneType === "restingGrounds" ? "Resting Grounds" : "Spirited Away";
 
-    const state = engine.current.state;
-
-    const [statusDisplay, setStatusDisplay] = useState({});
-
-    const styles = {
-        width: "clamp(80px, 12vw, 200px)",
-        aspectRatio: "750 / 1050",
-        margin: "10px",
-        borderRadius: "9px",
-        boxShadow: "1.5px 1.5px 5px 0.5px black inset",
-        backgroundColor: "grey"
-    }
-   
-    const imgStyle = {
-        width: "100%",
-        height: "100%",
-        objectFit: "cover",
-        display: state[player][zoneType][0] ? "block" : "none"
-    }
-
-    const statusStyles = {
-        position: "absolute",
-        backgroundColor: "black",
-        color: "white",
-        alignItems: "center",
-        justifyContent: "center",
-        display: statusDisplay.top ? "flex" : "none",
-        top: statusDisplay.top ?? "auto",
-        left: statusDisplay.left ?? "auto",
-    }
-
-    function handleShowStatus(e){
-        const rect = e.currentTarget.getBoundingClientRect();
-        setStatusDisplay({
-            top: rect.top,
-            left: rect.left
-        });
-    }
-
-    function handleHideStatus(e){
-        setStatusDisplay({})
-    }
-
-   
-    return(
-        
-        <div id={`${player}-${zoneType}`} style={styles} 
-            ref={allRefs[player][zoneType]}
-            onMouseEnter={handleShowStatus}
-            onMouseLeave={handleHideStatus}
-            className={`${checkTargetable() ? "non-targetable" : "targetable"}`}
-        >
-
-            <div id={`${player}-${zoneType}-status`} style={statusStyles}>
-                {zoneType === "restingGrounds" ? "Resting Grounds" : "Spirited Away"}<br/>
-                Cards contained: {state[player][zoneType].length}
-            </div>
-
-            <img
-                src={state[player][zoneType][0] 
-                        ? campestral[state[player][zoneType][0].id].src
-                        : null
-                    }
-                style={imgStyle}
-                onMouseEnter={()=>{
-                    setPreviewState({
-                        src: state[player][zoneType][0] 
-                            ? campestral[gameState[player][zoneType][0].id].src
-                            : null})
-                }}
-                onMouseLeave={()=>{
-                    setPreviewState({});
-                }}
-            />
-
-        </div>
-    )
+  return (
+    <div
+      id={`${player}-${zoneType}`}
+      ref={allRefs?.[player]?.[zoneType]}
+      className={`zone-slot away-slot ${cards.length > 0 ? "has-cards" : ""}`}
+      title={`${label} (${cards.length}) — Click to view all cards`}
+      onClick={() => {
+        if (cards.length > 0 && onInspectZone) {
+          onInspectZone({ player, zoneType, label, cards });
+        }
+      }}
+      onMouseEnter={() => {
+        if (topCard?.src) setPreviewState({ src: topCard.src, card: topCard });
+      }}
+      onMouseLeave={() => setPreviewState({})}
+    >
+      {topCard?.src ? (
+        <img src={topCard.src} alt={topCard.name} className="zone-card-img" draggable="false" />
+      ) : (
+        <span className="zone-placeholder-label">{zoneType === "restingGrounds" ? "Resting" : "Spirited"}</span>
+      )}
+      <div className="zone-badge-overlay">
+        <span className="zone-badge-name">{zoneType === "restingGrounds" ? "Resting" : "Spirited"}</span>
+        <span className="zone-badge-count">{cards.length}</span>
+      </div>
+    </div>
+  );
 }
 
 export default AwayZone;

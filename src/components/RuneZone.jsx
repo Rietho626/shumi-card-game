@@ -1,38 +1,74 @@
-import { useState, useRef, useEffect } from 'react';
-import campestral from "./../assets/campestral/cardData.js";
+import campestral from "../assets/campestral/cardData.js";
 
-function RuneZone({ player, zoneType, setPreviewState, playCardLogic, allRefs, engine, setVersion, checkTargetable }){
+function RuneZone({
+  player,
+  zoneType,
+  setPreviewState,
+  allRefs,
+  engine,
+  setVersion
+}) {
+  const state = engine.current.state;
+  const runeSlotObj = state[player][zoneType] || {};
+  const runeDef = campestral[runeSlotObj.id ?? "no-rune"] || { src: null };
 
-    const state = engine.current.state;
+  const isCombined =
+    zoneType === "upperRuneZone" &&
+    Boolean(state[player].upperRuneZone?.id) &&
+    !state[player].lowerRuneZone?.id;
 
-    const styles = {
-        width: "clamp(80px, 12vw, 200px)",
-        aspectRatio: "1030 / 1520",
-        margin: "10px",
-        borderRadius: "11px",
-        boxShadow: "1.5px 1.5px 5px 0.5px black inset",
-        backgroundColor: "grey"
+  const activatable =
+    player === "player" && runeSlotObj.id
+      ? engine.current.checkCanActivateAbilities("player", runeSlotObj)
+      : [];
+
+  async function handleRuneClick() {
+    if (player === "player" && activatable.length > 0) {
+      await engine.current.activateAbility("player", runeSlotObj, activatable[0]);
+      setVersion((v) => v + 1);
     }
+  }
 
-    const imgStyle = {
-        width: "100%",
-        height: "100%",
-        objectFit: "cover",
-        borderRadius: "11px",
-        display: state[player][zoneType].id ? "block" : "none"
-    }
+  const slotLabel =
+    zoneType === "upperRuneZone"
+      ? isCombined
+        ? "Combined Rune (↕)"
+        : "Upper Rune (↑)"
+      : "Lower Rune (↓)";
 
-    return(
-        
-        <div id={`${player}-${zoneType}`} style={styles} className={`${checkTargetable() ? "non-targetable" : "targetable"}`} ref={allRefs[player][zoneType]}>
-            <img
-             src={campestral[state[player][zoneType].id ?? "no-rune"].src}
-             style={imgStyle}
-             onMouseEnter={()=>{setPreviewState({src: campestral[state[player][zoneType].id ?? "no-rune"].src})}}
-             onMouseLeave={()=>{setPreviewState({})}}
-            />
-        </div>
-    )
+  return (
+    <div
+      id={`${player}-${zoneType}`}
+      className={`zone-slot rune-slot ${runeSlotObj.id ? "has-rune" : "empty-rune"} ${
+        activatable.length > 0 ? "playable-glow" : ""
+      }`}
+      ref={allRefs?.[player]?.[zoneType]}
+      onClick={handleRuneClick}
+      onMouseEnter={() => {
+        if (runeDef.src) setPreviewState({ src: runeDef.src, card: runeDef });
+      }}
+      onMouseLeave={() => setPreviewState({})}
+      title={
+        activatable.length > 0
+          ? `Click to activate: ${activatable[0].name || activatable[0].text}`
+          : slotLabel
+      }
+    >
+      {runeDef.src ? (
+        <>
+          <img src={runeDef.src} alt={runeDef.name} className="zone-card-img" draggable="false" />
+          <div className="rune-mode-indicator">{isCombined ? "↕" : zoneType === "upperRuneZone" ? "↑" : "↓"}</div>
+          {(runeSlotObj.storedYao || 0) > 0 && (
+            <div className="rune-stored-yao-badge" title={`Stored Yao: ${runeSlotObj.storedYao}`}>
+              ✦ {runeSlotObj.storedYao}
+            </div>
+          )}
+        </>
+      ) : (
+        <span className="zone-placeholder-label">{slotLabel}</span>
+      )}
+    </div>
+  );
 }
 
 export default RuneZone;

@@ -1,37 +1,27 @@
-import { useState, useRef, useEffect } from 'react';
+function YaoReserve({ player, allRefs, engine }) {
+  const state = engine.current.state;
+  const yaoCount = Math.min(21, Math.max(0, state[player].yaoReserve || 0));
+  const rawYao = state[player].yaoReserve || 0;
 
-function YaoReserve({ player, playCardLogic, allRefs, engine, setVersion, checkTargetable }){
-
-    const state = engine.current.state;
-
-    const styles = {
-        width: "clamp(80px, 12vw, 200px)",
-        aspectRatio: "750 / 1050",
-        margin: "10px",
-        borderRadius: "9px",
-        //boxShadow: "1.5px 1.5px 5px 0.5px black inset"
-    }
-
-    const imgStyle = {
-        width: "100%",
-        height: "100%",
-        objectFit: "cover",
-        transform: player === "opponent" ? "rotate(180deg)" : "rotate(0deg)",
-        borderRadius: "9px"
-    }
-
-    function addYao(e){
-       engine.current.addYao(player, "1");
-       setVersion(v=>v+1);
-    }
-    return(
-        <div id={`${player}-yao-reserve`} style={styles} onClick={addYao} className={`${checkTargetable() ? "non-targetable" : "targetable"}`} ref={allRefs[player]['yaoReserve']}>
-            <img
-                src={`${import.meta.env.BASE_URL}${state[player].yaoReserve}yao.png`}
-                style={imgStyle}
-            />
-        </div>
-    )
+  return (
+    <div
+      id={`${player}-yao-reserve`}
+      className={`yao-reserve-card ${player === "opponent" ? "opponent-yao" : ""}`}
+      ref={allRefs?.[player]?.yaoReserve}
+      title={`${player === "player" ? "Your" : "Opponent's"} Yao Reserve: ${rawYao} Yao`}
+    >
+      <img
+        src={`${yaoCount}yao.png`}
+        alt={`${rawYao} Yao`}
+        className="yao-reserve-img"
+        draggable="false"
+      />
+      <div className="yao-reserve-counter">
+        <span>✦ {rawYao}</span>
+        <small>Yao Reserve</small>
+      </div>
+    </div>
+  );
 }
 
 export default YaoReserve;

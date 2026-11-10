@@ -1,70 +1,45 @@
-import { useState, useRef, useEffect } from 'react';
-import campestral from "./../assets/campestral/cardData.js";
+import campestral from "../assets/campestral/cardData.js";
 
-function TheStack({ setPreviewState, getTranscribedTarget, engine }){
+function TheStack({ setPreviewState, engine }) {
+  const state = engine.current.state;
+  const stack = state.gameInfo.theStack || [];
+  if (!stack.length) return null;
 
-    const state = engine.current.state;
-
-    const styles = {
-        border: "3px solid black",
-        padding: "30px",
-        margin: "10px",
-        position: "fixed",
-        top: "20px",
-        right: "20px",
-        backgroundColor: "rgba(50, 120, 120, 0.9)",
-        zIndex: "5"
-    }
-
-    const titleStyles = {
-        windth: "calc(100%-10px)",
-        padding: "5px",
-        backgroundColor: "black",
-        color: "White",
-        fontSize: "20px",
-        fontWeight: "bold",
-        textAlign: "center"
-    }
-
-    const stackContainerStyles = {
-        diplay: "flex",
-        flexDirection: "column"
-    }
-
-    const stackWrapperStyles = {
-        display: "flex",
-        padding: "5px",
-        gap: "5px"
-    }
-
-    const stackInfoStyles ={
-        textAlign: "center",
-        fontSize: "20px"
-    }
-
-    const imgStyles = {
-        height: "clamp(120px, 20vh, 250px)",
-        aspectRatio: "1035/1520"
-    }
-    return(
-        <div id="the-stack" style={styles} hidden={!state.gameInfo.theStack.length}>
-            <div style={titleStyles}>The Stack</div>
-            <div id='stack-wrapper' style={stackWrapperStyles}>
-            {state.gameInfo.theStack.map((el, idx)=>(
-               <div key={'stack'+el.card.id+idx} style={stackContainerStyles}>
-                   <img
-                    src={campestral[el.card.id].src}
-                    style={imgStyles}
-                    onMouseEnter={()=>{setPreviewState({src: campestral[el.card.id].src})}}
-                    onMouseLeave={()=>{setPreviewState({})}}
-                   />
-                   <div style={stackInfoStyles}>{getTranscribedTarget(el.target)}</div>
-                   <div style={stackInfoStyles}>{idx}</div>
-               </div>
-            ))}
+  return (
+    <div id="the-stack" className="the-stack-panel">
+      <div className="the-stack-header">
+        <span>⚡ The Stack ({stack.length})</span>
+        <small>Top resolves first</small>
+      </div>
+      <div id="stack-wrapper" className="the-stack-list">
+        {[...stack].reverse().map((el, revIdx) => {
+          const idx = stack.length - 1 - revIdx;
+          const cardDef = campestral[el.card?.id] || {};
+          return (
+            <div
+              key={el.id || `stack_${idx}`}
+              className={`stack-entry ${el.player === "player" ? "friendly-stack" : "enemy-stack"}`}
+              onMouseEnter={() => {
+                if (cardDef.src) setPreviewState({ src: cardDef.src, card: cardDef });
+              }}
+              onMouseLeave={() => setPreviewState({})}
+            >
+              <img src={cardDef.src} alt={cardDef.name} className="stack-entry-img" />
+              <div className="stack-entry-info">
+                <div className="stack-entry-badge">
+                  #{idx + 1} • {el.player === "player" ? "YOU" : "AI"} • {el.kind?.toUpperCase()}
+                </div>
+                <div className="stack-entry-text">
+                  {el.meta?.summaryText || cardDef.name}
+                </div>
+                {el.meta?.canceled && <div className="stack-canceled-tag">CANCELED</div>}
+              </div>
             </div>
-        </div>
-    )
+          );
+        })}
+      </div>
+    </div>
+  );
 }
 
 export default TheStack;

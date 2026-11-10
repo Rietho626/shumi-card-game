@@ -1,107 +1,82 @@
+import campestral from "./assets/campestral/cardData.js";
+import { DECK_RULES } from "./setup.js";
 
-import { useState,  useRef, useEffect, use } from 'react'
+function Menu({
+  decksConfig,
+  hasSavedSession,
+  onStartNewGame,
+  onResumeGame,
+  onOpenDeckBuilder,
+  headlineRef
+}) {
+  const playerValid = decksConfig.player.actionDeckIds.length === DECK_RULES.actionDeckSize;
+  const aiValid = decksConfig.opponent.actionDeckIds.length === DECK_RULES.actionDeckSize;
+  const canStart = playerValid && aiValid;
 
-function Menu({ setMenuState, setGameRunningState, bgRef, headlineRef }){
+  const pUpper = decksConfig.player.upperRuneId ? campestral[decksConfig.player.upperRuneId]?.name : "None";
+  const pLower = decksConfig.player.lowerRuneId ? campestral[decksConfig.player.lowerRuneId]?.name : "Combined (↕)";
+  const aiUpper = decksConfig.opponent.upperRuneId ? campestral[decksConfig.opponent.upperRuneId]?.name : "None";
+  const aiLower = decksConfig.opponent.lowerRuneId ? campestral[decksConfig.opponent.lowerRuneId]?.name : "Combined (↕)";
 
-    const bgUrl = `url(${import.meta.env.BASE_URL}bg.png)`;
+  return (
+    <div id="menu" className="shumi-menu-screen">
+      <div className="menu-content-card">
+        <div className="menu-badge">CAMPESTRAL ARCHETYPE EDITION</div>
+        <h1 id="menu-headline" ref={headlineRef} className="menu-title">
+          SHUMI
+        </h1>
+        <p className="menu-subtitle">Tactical Yao &amp; Lane Card Battles</p>
 
-    const menuStyles ={
-        position: "fixed",
-        height: "100vh",
-        width: "100vw",
-        margin: "0px",
-        padding: "0px",
-        boder: "0px",
-        backgroundColor: "black",
-    }
-
-    const contentWrapperStyles = {
-        display: "flex",
-        width: "90vw",
-        height: "90vh",
-        margin: "auto",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center"
-    };
-
-    const clickHereStyle = {
-        fontSize: "2rem",
-        textAlign: "center"
-    }
-
-    const headlineStyles = {
-        color: "cyan",
-        width: "50%",
-        fontSize: "7rem",
-        margin: "50px"
-    }
-
-    const startButtonStyles = {
-        textAlign: "center",
-        border: "4px solid white",
-        width: "10%",
-        margin: "auto",
-        color: "white"
-    }
-
-    const bg1Styles = {
-        backgroundImage: bgUrl,
-        backgroundRepeat: "no-repeat",
-        backgroundSize: "cover",
-        position: "fixed",
-        height: "max(1221px, 55.5vw)",
-        width: "max(856px, 39vw)",
-        margin: "auto",
-        padding: "0px",
-        boder: "0px",
-        zIndex: "-2",
-        transform: "rotate(45deg)",
-        top: "-5%",
-        left: "25%"
-    }
-
-    
-    const bg2Styles = {
-        backgroundImage: bgUrl,
-        backgroundRepeat: "no-repeat",
-        backgroundSize: "cover",
-        position: "fixed",
-        height: "max(1221px, 55.5vw)",
-        width: "max(856px, 39vw)",
-        margin: "auto",
-        padding: "0px",
-        boder: "0px",
-        zIndex: "-1",
-        transform: "rotate(45deg)",
-        filter: "blur(5px) brightness(1.5)",
-        opacity: "0.5",
-        top: "-5%",
-        left: "25%"
-    }
-
-
-
-    function startGame(){
-        setMenuState(false);
-        setGameRunningState(true);
-    }
-    return (
-        <div id="menu" style={menuStyles}>
-            <div id="bg1" style={bg1Styles}>
-
+        <div className="menu-deck-status-row">
+          <div className={`menu-deck-pill ${playerValid ? "ok" : "warn"}`}>
+            <div className="pill-header">Your Loadout</div>
+            <div className="pill-main">
+              Action: <strong>{decksConfig.player.actionDeckIds.length}/{DECK_RULES.actionDeckSize}</strong> • Yao:{" "}
+              <strong>{decksConfig.player.yaoDeckIds.length}</strong>
             </div>
-            <div id="bg2" ref={bgRef} style={bg2Styles}>
+            <div className="pill-sub">
+              Runes: {pUpper} {decksConfig.player.upperRuneId ? `/ ${pLower}` : ""}
+            </div>
+          </div>
 
+          <div className={`menu-deck-pill ${aiValid ? "ok" : "warn"}`}>
+            <div className="pill-header">AI Loadout</div>
+            <div className="pill-main">
+              Action: <strong>{decksConfig.opponent.actionDeckIds.length}/{DECK_RULES.actionDeckSize}</strong> • Yao:{" "}
+              <strong>{decksConfig.opponent.yaoDeckIds.length}</strong>
             </div>
-            <div id="content-wrapper" style={contentWrapperStyles}>
-                <div id="menu-headline" ref={headlineRef} style={headlineStyles} onClick={()=>{startGame()}}>
-                    SHUMI
-                    <div id="click-here" style={clickHereStyle}>click here</div>
-                </div>
+            <div className="pill-sub">
+              Runes: {aiUpper} {decksConfig.opponent.upperRuneId ? `/ ${aiLower}` : ""}
             </div>
+          </div>
         </div>
-    )
+
+        {!canStart && (
+          <div className="menu-validation-alert">
+            Both Player and AI Action Decks must contain exactly {DECK_RULES.actionDeckSize} cards before starting a new match.
+          </div>
+        )}
+
+        <div className="menu-actions">
+          {hasSavedSession && (
+            <button className="shumi-btn primary resume-btn" onClick={onResumeGame}>
+              ▶ Resume Active Match
+            </button>
+          )}
+          <button
+            className="shumi-btn primary start-btn"
+            disabled={!canStart}
+            onClick={onStartNewGame}
+          >
+            ⚔ {hasSavedSession ? "Start New Match" : "Enter the Battlefield"}
+          </button>
+          <button className="shumi-btn secondary builder-btn" onClick={onOpenDeckBuilder}>
+            ✦ Deck &amp; Rune Forge (Player &amp; AI)
+          </button>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 export default Menu;

@@ -1,14 +1,32 @@
-import { useState,  useRef, useEffect, use } from 'react'
+import { useState, useRef, useEffect } from "react";
 
 import Game from "./Game.jsx";
 import Disclaimer from "./Disclaimer.jsx";
 import Menu from "./Menu.jsx";
+import DeckBuilder from "./components/DeckBuilder.jsx";
+import {
+  loadSavedDecksConfig,
+  loadGameSession,
+  clearGameSession
+} from "./setup.js";
+
+const ACTIVE_SCREEN_KEY = "shumi_active_screen_v1";
 
 function App() {
+  const [decksConfig, setDecksConfig] = useState(() => loadSavedDecksConfig());
+  const [savedSession, setSavedSession] = useState(() => loadGameSession());
+  const [screen, setScreen] = useState(() => {
+    const savedScr = localStorage.getItem(ACTIVE_SCREEN_KEY);
+    const existingSession = loadGameSession();
+    if (savedScr === "game" && existingSession) return "game";
+    if (savedScr === "deckBuilder") return "deckBuilder";
+    return "menu";
+  });
 
-  const [gameRunningState, setGameRunningState] = useState(null);
-  const [disclaimerState, setDisclaimerState] = useState({show: false, fade: false});
-  const [menuState, setMenuState] = useState(null);
+  const [disclaimerState, setDisclaimerState] = useState(() => {
+    const alreadySeen = localStorage.getItem("shumi_disclaimer_seen");
+    return { show: !alreadySeen, fade: false };
+  });
 
   const disclaimerRef = {
     heading: useRef({}),
@@ -18,137 +36,153 @@ function App() {
   const bgRef = useRef(null);
   const headlineRef = useRef(null);
 
-  useEffect(()=>{
-    localStorage.clear();
-  }, [])
+  useEffect(() => {
+    localStorage.setItem(ACTIVE_SCREEN_KEY, screen);
+  }, [screen]);
 
-    if(!disclaimerState.show && !localStorage.getItem("disclaimer")){
-    setDisclaimerState({show: true, fade: false});
-  }
+  useEffect(() => {
+    if (!disclaimerState.show) return;
+    let cancelled = false;
 
+    const delay = (time) => new Promise((resolve) => setTimeout(resolve, time));
 
-  useEffect(()=>{
-   // if((menuState || gameRunningState) || !disclaimerState.show) return;
-    async function delay(time){
-      return new Promise((resolve)=>{
-          setTimeout(resolve, time);
-      })
-    }
-
-    async function show(box, glow){
+    async function showLetters(box, glow) {
       let oldKey = null;
-      for(let key in disclaimerRef[box].current){
-        await delay(35);
-        disclaimerRef[box].current[key].classList.remove("black");
-        disclaimerRef[box].current[key].classList.add(glow);
-        if(oldKey)  disclaimerRef[box].current[oldKey].classList.remove(glow);
+      const refs = disclaimerRef[box]?.current || {};
+      for (const key in refs) {
+        if (cancelled) return;
+        await delay(25);
+        const el = refs[key];
+        if (!el) continue;
+        el.classList.remove("black");
+        el.classList.add(glow);
+        if (oldKey && refs[oldKey]) refs[oldKey].classList.remove(glow);
         oldKey = key;
       }
-      if(oldKey)  disclaimerRef[box].current[oldKey].classList.remove(glow);
-      return;
+      if (oldKey && refs[oldKey]) refs[oldKey].classList.remove(glow);
     }
 
-    function hide(box) {
-      for(let key in disclaimerRef[box].current){
-        disclaimerRef[box].current[key].classList.add("black");
+    async function runDisclaimer() {
+      await showLetters("heading", "red-glow");
+      await showLetters("body", "white-glow");
+      if (cancelled) return;
+      await delay(800);
+      if (cancelled) return;
+      setDisclaimerState({ show: true, fade: true });
+      await delay(600);
+      if (cancelled) return;
+      setDisclaimerState({ show: false, fade: false });
+      localStorage.setItem("shumi_disclaimer_seen", "true");
+    }
+
+    runDisclaimer();
+    return () => {
+      cancelled = true;
+    };
+  }, [disclaimerState.show]);
+
+  useEffect(() => {
+    if (screen !== "menu") return;
+
+    const bgAnimation = [
+      {
+        transform: "rotate(45deg) scale(1) translateY(0) translateX(0)",
+        filter: "blur(5px) brightness(1.3)",
+        opacity: "0.45"
+      },
+      {
+        transform: "rotate(45deg) scale(1.12) translateY(-2%) translateX(-2%)",
+        filter: "blur(1px) brightness(1)",
+        opacity: "0.65"
+      },
+      {
+        transform: "rotate(45deg) scale(1) translateY(0) translateX(0)",
+        filter: "blur(5px) brightness(1.3)",
+        opacity: "0.45"
       }
-    }
+    ];
 
-    async function disclaimer() {
-      await show("heading", "red-glow");
-      await show("body", "white-glow");
-      await delay(1000);
-      setDisclaimerState({show: true, fade: true});
-      setMenuState(true);
-      await delay(1000);
-      setDisclaimerState({show: false, fade: false});
-      localStorage.setItem("disclaimer", "disclamed")
-    }
+    const glowAnimation = [
+      { textShadow: "0px 0px 25px rgba(56, 239, 125, 0.7)" },
+      { textShadow: "0px 0px 70px rgba(56, 239, 125, 1), 0px 0px 25px cyan" },
+      { textShadow: "0px 0px 25px rgba(56, 239, 125, 0.7)" }
+    ];
 
-    disclaimer();
-    return(()=>{
-      //setDisclaimerState(null);
-    })
-  }, [])
-
-
-  useEffect(()=>{
-    if(!menuState) return;
-
-    const bgAnimation =  [
-    {
-        height: "max(1221px, 55.5vw)",
-        width: "max(856px, 39vw)",
-        filter: "blur(5px) brightness(1.5)",
-        top: "-5%",
-        opacity: "0.5"
-    },
-    {
-        height: "max(1465px, 66.5vw)",
-        top: "-15%",
-        left: "20%",
-        width: "max(1027px, 47vw)",
-        filter: "blur(0px) brightness(1)",
-        opacity: "0.7"
-    },
-    {
-        height: "max(1221px, 55.5vw)",
-        width: "max(856px, 39vw)",
-        filter: "blur(5px) brightness(1.5)",
-        opacity: "0.5",
-        top: "-5%",
-    },
-  ];
-
-  const glowAnimation = [
-    {
-      textShadow: "0px 0px 30px cyan"
-    },
-    {
-      textShadow: "0px 0px 100px cyan"
-    },
-    {
-      textShadow: "0px 0px 30px cyan"
-    },
-  ]
-
-
-  const timing = {
+    const timing = {
       duration: 5000,
       iterations: Infinity,
       easing: "ease-in-out"
+    };
+
+    const bgAnim = bgRef.current?.animate?.(bgAnimation, timing);
+    const headAnim = headlineRef.current?.animate?.(glowAnimation, timing);
+
+    return () => {
+      bgAnim?.cancel?.();
+      headAnim?.cancel?.();
+    };
+  }, [screen]);
+
+  function skipDisclaimer() {
+    setDisclaimerState({ show: false, fade: false });
+    localStorage.setItem("shumi_disclaimer_seen", "true");
   }
 
-  if(bgRef){
-    bgRef.current.animate(bgAnimation, timing);
-    headlineRef.current.animate(glowAnimation, timing)
+  function handleStartNewGame() {
+    clearGameSession();
+    setSavedSession(null);
+    setScreen("game");
   }
 
-  
-  }, [menuState])
+  function handleResumeGame() {
+    const latest = loadGameSession();
+    setSavedSession(latest);
+    setScreen("game");
+  }
+
+  function handleReturnToMenu() {
+    setSavedSession(loadGameSession());
+    setScreen("menu");
+  }
 
   return (
     <>
-      {
-        gameRunningState && <Game></Game>
-      }
-      {
-        disclaimerState.show &&
-        <Disclaimer
-          disclaimerRef={disclaimerRef}
-          disclaimerState={disclaimerState}
-        ></Disclaimer>
-      }
-      {
-        menuState && <Menu
-          setGameRunningState={setGameRunningState}
-          setMenuState={setMenuState}
+      {disclaimerState.show && (
+        <div onClick={skipDisclaimer} style={{ cursor: "pointer" }} title="Click anywhere to skip">
+          <Disclaimer disclaimerRef={disclaimerRef} disclaimerState={disclaimerState} />
+        </div>
+      )}
+
+      {screen === "menu" && (
+        <Menu
+          decksConfig={decksConfig}
+          hasSavedSession={Boolean(savedSession && savedSession.gameInfo?.started)}
+          onStartNewGame={handleStartNewGame}
+          onResumeGame={handleResumeGame}
+          onOpenDeckBuilder={() => setScreen("deckBuilder")}
           bgRef={bgRef}
           headlineRef={headlineRef}
-        ></Menu>
-      }
+        />
+      )}
+
+      {screen === "deckBuilder" && (
+        <DeckBuilder
+          decksConfig={decksConfig}
+          setDecksConfig={setDecksConfig}
+          onBack={() => setScreen("menu")}
+        />
+      )}
+
+      {screen === "game" && (
+        <Game
+          decksConfig={decksConfig}
+          initialSavedState={savedSession}
+          onReturnToMenu={handleReturnToMenu}
+          onStartNewMatch={handleStartNewGame}
+        />
+      )}
     </>
-  )
+  );
 }
 
-export default App
+export default App;

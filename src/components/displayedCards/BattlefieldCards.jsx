@@ -1,70 +1,125 @@
-import { useState,  useRef, useEffect } from 'react';
-import campestral from "./../../assets/campestral/cardData.js";
-//LATER: Merge campestral objects with the other habitat objects
+import campestral from "../../assets/campestral/cardData.js";
 
-function BattlefieldCards({ player, lane, setPreviewState, allRefs, idx, card, engine }){
+function BattlefieldCards({
+  player,
+  lane,
+  setPreviewState,
+  allRefs,
+  idx,
+  card,
+  engine,
+  onSelectCard
+}) {
+  const cardDef = campestral[card.id] || {};
+  const prompt = engine.current.state.gameInfo.prompt;
 
-   // console.log(card)
+  const isPromptTarget =
+    prompt?.type === "target_selection" &&
+    prompt.legalTargets?.some((t) => t.type === "shumi" && t.cardNr === card.cardNr);
 
-    const state = engine.current.state;
-  
-    const cardStyles = {
-        height: "160px",
-        width: "160px",
-        overflow: "hidden",
-        borderRadius: "5px",
-        border: "3px solid black",
-        position: "relative",
-        boxShadow: card.momentum ? "0px 0px 4px 2px darkorange" : "",
+  const canAct =
+    player === "player" &&
+    lane !== "crystalZone" &&
+    (engine.current.getAvailableAttacks("player", card).length > 0 ||
+      engine.current.checkCanActivateAbilities("player", card).length > 0 ||
+      engine.current.canChangeLane("player", card).canMove);
+
+  const currentHp = lane !== "crystalZone" ? engine.current.getCurrentHp(player, card) : null;
+  const maxHp = lane !== "crystalZone" ? engine.current.getMaxHp(player, card) : null;
+  const baseAttack = cardDef.baseAttacks?.[0];
+  const baseDamage =
+    lane !== "crystalZone" && baseAttack
+      ? engine.current.calculateAttackDamage(player, card, baseAttack)
+      : null;
+
+  const hasFlight =
+    lane !== "crystalZone" &&
+    (cardDef.keywords?.includes("flight") ||
+      card.tempKeywords?.some((tk) => tk.keyword === "flight"));
+
+  const picSrc = cardDef.pic || `campestral/pics/${card.id}-pic.png`;
+
+  function handleClick(e) {
+    e.stopPropagation();
+    if (isPromptTarget) {
+      const targetObj = prompt.legalTargets.find((t) => t.type === "shumi" && t.cardNr === card.cardNr);
+      engine.current.resolvePrompt(targetObj || card.cardNr);
+      return;
     }
-
-    const imgStyles = {
-      height: "100%",
-      width: "100%",
-      objectFit: "cover"
+    if (lane !== "crystalZone" && onSelectCard) {
+      onSelectCard(card, player);
     }
+  }
 
-    const innerShadowStyles = {
-        width: "100%",
-        height: "100%",
-        position: "absolute",
-        boxShadow: engine.current.checkCanActivateAbilites(player, card).length ? "0px 0px 10px 2px gold inset" : "0px 0px 10px 2px black inset",
-    }
+  return (
+    <div
+      id={`${player}-${lane}-card-${idx}`}
+      className={[
+        "bf-card",
+        lane === "crystalZone" ? "bf-crystal-card" : "bf-shumi-card",
+        card.momentum ? "has-momentum" : "",
+        canAct ? "can-act" : "",
+        isPromptTarget ? "legal-target-pulse" : ""
+      ]
+        .filter(Boolean)
+        .join(" ")}
+      ref={(el) => {
+        if (allRefs?.[player]?.[lane + "Cards"]?.current) {
+          allRefs[player][lane + "Cards"].current[`${player}-${lane}-card-${idx}`] = el;
+        }
+      }}
+      onMouseEnter={() => {
+        if (cardDef.src) setPreviewState({ src: cardDef.src, card: cardDef, instance: card });
+      }}
+      onMouseLeave={() => setPreviewState({})}
+      onClick={handleClick}
+    >
+      <img src={picSrc} alt={cardDef.name || card.id} className="bf-card-art" draggable="false" />
+      <div className="bf-card-vignette" />
 
-    const healthStyles = {
-        padding: "2px",
-        border: "1px solid black",
-        backgroundColor: "green",
-        width: "40px",
-        position: "absolute",
-        borderRadius: "60%",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        boxShadow: "0px 0px 10px 2px inset",
-        bottom: "5px",
-        left: "5px",
-        display: lane === "crystalZone" ? "none" : "flex" 
-    }
+      <div className="bf-card-top-row">
+        {card.momentum && lane !== "crystalZone" && (
+          <span className="bf-badge momentum-badge" title="Has Momentum (Ready to Attack)">
+            ⚡
+          </span>
+        )}
+        {hasFlight && (
+          <span className="bf-badge flight-badge" title="Has Flight">
+            🪽
+          </span>
+        )}
+        {(card.storedYao || 0) > 0 && (
+          <span className="bf-badge yao-stored-badge" title={`Stored Yao: ${card.storedYao}`}>
+            ✦ {card.storedYao}
+          </span>
+        )}
+      </div>
 
-    return(
-        <div 
-         id={`${player}-${lane}-card-${idx}`} 
-         style={cardStyles}
-         ref={el=>allRefs[player][lane+'Cards']['current'][`${player}-${lane}-card-${idx}`] = el}
-         onMouseEnter={()=>{setPreviewState({src: campestral[card.id].src})}}
-         onMouseLeave={()=>{setPreviewState({})}}
-         onClick={()=>{
-            setPreviewState({});
-            engine.checkForAttack();
-         }}
-        >
-            <div style={innerShadowStyles}></div>
-            <div className='health' style={healthStyles}>{card.currentHp}</div>
-            <img src={`${import.meta.env.BASE_URL}campestral/pics/${card.id}-pic.png`}  style={imgStyles}/>
+      <div className="bf-card-name-bar">{cardDef.name}</div>
 
+      {lane !== "crystalZone" && (
+        <div className="bf-card-bottom-row">
+          <div
+            className={`bf-stat-orb hp-orb ${
+              currentHp < (cardDef.health || 1)
+                ? "damaged"
+                : maxHp > (cardDef.health || 1)
+                ? "buffed"
+                : ""
+            }`}
+            title={`Life: ${currentHp} / ${maxHp}`}
+          >
+            ♥ {currentHp}
+          </div>
+          {baseDamage !== null && (
+            <div className="bf-stat-orb atk-orb" title={`Base Attack (${baseAttack?.name}): ${baseDamage}`}>
+              ⚔ {baseDamage}
+            </div>
+          )}
         </div>
-    )
+      )}
+    </div>
+  );
 }
 
 export default BattlefieldCards;
